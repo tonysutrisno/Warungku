@@ -3,68 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kasir Warung HP</title>
-    <!-- Kita pakai bantuan library scanner gratis yang ringan bernama Html5-Qrcode -->
-    <script src="https://unpkg.com"></script>
+    <title>Kasir Warung</title>
+    <script src="https://jsdelivr.net"></script>
     <style>
         body { font-family: Arial, sans-serif; text-align: center; margin: 0; padding: 20px; background: #f4f4f4; }
-        h1 { color: #2ecc71; }
-        #scanner-box { width: 100%; max-width: 400px; margin: auto; border: 4px solid #2ecc71; border-radius: 10px; overflow: hidden; }
-        #hasil { margin-top: 20px; padding: 15px; background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .harga { font-size: 28px; color: #2ecc71; font-weight: bold; margin-top: 5px; }
-        .nama { font-size: 20px; font-weight: bold; color: #333; }
+        #video { width: 100%; max-width: 400px; border: 4px solid #2ecc71; border-radius: 10px; background: black; }
+        .box { margin-top: 20px; padding: 15px; background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .harga { font-size: 30px; color: #2ecc71; font-weight: bold; }
     </style>
 </head>
 <body>
-
     <h1>🏪 Kasir Warung Pintar</h1>
-    <p>Arahkan kamera HP ke barcode barang</p>
-    
-    <!-- Kotak Tampilan Kamera -->
-    <div id="scanner-box">
-        <div id="reader"></div>
+    <video id="video"></video>
+    <div class="box">
+        <div id="nama" style="font-size:20px; font-weight:bold;">Arahkan ke Barcode Barang</div>
+        <div id="harga" class="harga">Rp 0</div>
     </div>
-
-    <!-- Kotak Informasi Harga -->
-    <div id="hasil">
-        <div class="nama" id="nama-barang">Belum ada barang</div>
-        <div class="harga" id="harga-barang">Rp 0</div>
-    </div>
-
     <script>
-        // DAFTAR HARGA BARANG WARUNG ANDA (Bisa Anda ubah/tambah sendiri di HP)
-        const databaseWarung = {
+        const database = {
             "8992345678901": { nama: "Mie Instan Goreng", harga: 3500 },
             "8999999195804": { nama: "Teh Kotak Sosro", harga: 5000 },
-            "899886610023": { nama: "Air Mineral 600ml", harga: 4000 },
-            "711844110185": { nama: "Kopi Sachet", harga: 2000 }
+            "899886610023": { nama: "Air Mineral 600ml", harga: 4000 }
         };
-
-        let terakhirDiScan = "";
-
-        // Fungsi saat kamera berhasil membaca barcode
-        function onScanSuccess(decodedText, decodedResult) {
-            // Biar tidak mendeteksi berulang-ulang dalam satu waktu
-            if (decodedText !== terakhirDiScan) {
-                terakhirDiScan = decodedText;
-                
-                // Cari di database warung
-                if (databaseWarung[decodedText]) {
-                    document.getElementById("nama-barang").innerText = databaseWarung[decodedText].nama;
-                    document.getElementById("harga-barang").innerText = "Rp " + databaseWarung[decodedText].harga.toLocaleString('id-ID');
+        const codeReader = new ZXing.BrowserMultiFormatReader();
+        codeReader.decodeFromVideoDevice(null, 'video', (result, err) => {
+            if (result) {
+                const kode = result.text;
+                if (database[kode]) {
+                    document.getElementById("nama").innerText = database[kode].nama;
+                    document.getElementById("harga").innerText = "Rp " + database[kode].harga.toLocaleString('id-ID');
                 } else {
-                    document.getElementById("nama-barang").innerText = "Barang Tidak Dikenal\n(" + decodedText + ")";
-                    document.getElementById("harga-barang").innerText = "Rp 0";
+                    document.getElementById("nama").innerText = "Barang Baru (" + kode + ")";
+                    document.getElementById("harga").innerText = "Rp 0";
                 }
-
-                // Reset status scan setelah 3 detik agar bisa scan barang lain
-                setTimeout(() => { terakhirDiScan = ""; }, 3000);
             }
-        }
-
-        // Menyalakan Kamera HP otomatis (pakai kamera belakang)
-        const html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: { width: 250, height: 150 } });
-        html5QrcodeScanner.render(onScanSuccess);
+        });
     </script>
 </body>
 </html>
