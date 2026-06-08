@@ -26,7 +26,10 @@
             "899886610023": { nama: "Air Mineral 600ml", harga: 4000 }
         };
         const codeReader = new ZXing.BrowserMultiFormatReader();
-        codeReader.decodeFromVideoDevice(null, 'video', (result, err) => {
+        // GANTI DENGAN KODE BARU INI:
+const constraints = { video: { facingMode: "environment" } };
+codeReader.decodeFromVideoDevice(undefined, 'video', (result, err) => {
+
             if (result) {
                 const kode = result.text;
                 if (database[kode]) {
