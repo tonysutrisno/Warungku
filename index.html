@@ -73,30 +73,3 @@
     </script>
 </body>
 </html>
-            })
-            .catch(err => console.error(err));
-
-        // 2. Fungsi untuk menyalakan kamera berdasarkan ID yang dipilih
-        function mulaiScan(deviceId) {
-            codeReader.reset();
-            codeReader.decodeFromVideoDevice(deviceId, 'video', (result, err) => {
-                if (result) {
-                    const kodeBarcode = result.text;
-                    if (databaseWarung[kodeBarcode]) {
-                        document.getElementById("nama").innerText = databaseWarung[kodeBarcode].nama;
-                        document.getElementById("harga").innerText = "Rp " + databaseWarung[kodeBarcode].price.toLocaleString('id-ID');
-                    } else {
-                        document.getElementById("nama").innerText = "Barang Baru\n(" + kodeBarcode + ")";
-                        document.getElementById("harga").innerText = "Rp 0";
-                    }
-                }
-            });
-        }
-
-        // 3. Jika pengguna mengubah pilihan kamera di menu drop-down
-        seleksiKamera.onchange = () => {
-            mulaiScan(seleksiKamera.value);
-        };
-    </script>
-</body>
-</html>
