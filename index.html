@@ -3,44 +3,93 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kasir Warung</title>
+    <title>Kasir Warung Pintar</title>
     <script src="https://jsdelivr.net"></script>
     <style>
         body { font-family: Arial, sans-serif; text-align: center; margin: 0; padding: 20px; background: #f4f4f4; }
+        h1 { color: #2ecc71; margin-bottom: 5px; }
         #video { width: 100%; max-width: 400px; border: 4px solid #2ecc71; border-radius: 10px; background: black; }
-        .box { margin-top: 20px; padding: 15px; background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .harga { font-size: 30px; color: #2ecc71; font-weight: bold; }
+        .box { margin-top: 15px; padding: 15px; background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 370px; margin-left: auto; margin-right: auto; }
+        .harga { font-size: 32px; color: #2ecc71; font-weight: bold; margin-top: 5px; }
+        .btn { background: #2ecc71; color: white; border: none; padding: 10px 20px; font-size: 16px; border-radius: 5px; cursor: pointer; margin-top: 10px; font-weight: bold;}
+        select { padding: 10px; font-size: 16px; border-radius: 5px; margin-top: 10px; width: 100%; max-width: 400px; }
     </style>
 </head>
 <body>
+
     <h1>🏪 Kasir Warung Pintar</h1>
-    <video id="video"></video>
+    <p>Pilih kamera di bawah jika gambar masih hitam</p>
+    
+    <!-- Pilihan Kamera HP -->
+    <select id="pilihKamera"></select>
+    <br>
+
+    <!-- Tampilan Kamera -->
+    <video id="video" autoplay playsinline></video>
+    <br>
+
+    <!-- Informasi Harga -->
     <div class="box">
-        <div id="nama" style="font-size:20px; font-weight:bold;">Arahkan ke Barcode Barang</div>
+        <div id="nama" style="font-size:22px; font-weight:bold; color: #333;">Arahkan ke Barcode...</div>
         <div id="harga" class="harga">Rp 0</div>
     </div>
-    <script>
-        const database = {
-            "8992345678901": { nama: "Mie Instan Goreng", harga: 3500 },
-            "8999999195804": { nama: "Teh Kotak Sosro", harga: 5000 },
-            "899886610023": { nama: "Air Mineral 600ml", harga: 4000 }
-        };
-        const codeReader = new ZXing.BrowserMultiFormatReader();
-        // GANTI DENGAN KODE BARU INI:
-const constraints = { video: { facingMode: "environment" } };
-codeReader.decodeFromVideoDevice(undefined, 'video', (result, err) => {
 
-            if (result) {
-                const kode = result.text;
-                if (database[kode]) {
-                    document.getElementById("nama").innerText = database[kode].nama;
-                    document.getElementById("harga").innerText = "Rp " + database[kode].harga.toLocaleString('id-ID');
+    <script>
+        const databaseWarung = {
+            "8992345678901": { nama: "Mie Instan Goreng", price: 3500 },
+            "8999999195804": { nama: "Teh Kotak Sosro", price: 5000 },
+            "899886610023": { nama: "Air Mineral 600ml", price: 4000 }
+        };
+
+        const codeReader = new ZXing.BrowserMultiFormatReader();
+        const seleksiKamera = document.getElementById('pilihKamera');
+        let idKameraTerpilih;
+
+        // 1. Mencari semua kamera yang tersedia di HP Anda
+        codeReader.listVideoInputDevices()
+            .then((devices) => {
+                if (devices.length >= 1) {
+                    // Masukkan daftar kamera ke dalam menu pilihan
+                    devices.forEach((device, index) => {
+                        const opsi = document.createElement('option');
+                        opsi.text = device.label || `Kamera ${index + 1}`;
+                        opsi.value = device.deviceId;
+                        seleksiKamera.appendChild(opsi);
+                    });
+
+                    // Pilih kamera terakhir (biasanya kamera belakang utama pada Android)
+                    idKameraTerpilih = devices[devices.length - 1].deviceId;
+                    seleksiKamera.value = idKameraTerpilih;
+
+                    // Jalankan kamera pembaca barcode
+                    mulaiScan(idKameraTerpilih);
                 } else {
-                    document.getElementById("nama").innerText = "Barang Baru (" + kode + ")";
-                    document.getElementById("harga").innerText = "Rp 0";
+                    document.getElementById("nama").innerText = "Kamera tidak ditemukan!";
                 }
-            }
-        });
+            })
+            .catch(err => console.error(err));
+
+        // 2. Fungsi untuk menyalakan kamera berdasarkan ID yang dipilih
+        function mulaiScan(deviceId) {
+            codeReader.reset();
+            codeReader.decodeFromVideoDevice(deviceId, 'video', (result, err) => {
+                if (result) {
+                    const kodeBarcode = result.text;
+                    if (databaseWarung[kodeBarcode]) {
+                        document.getElementById("nama").innerText = databaseWarung[kodeBarcode].nama;
+                        document.getElementById("harga").innerText = "Rp " + databaseWarung[kodeBarcode].price.toLocaleString('id-ID');
+                    } else {
+                        document.getElementById("nama").innerText = "Barang Baru\n(" + kodeBarcode + ")";
+                        document.getElementById("harga").innerText = "Rp 0";
+                    }
+                }
+            });
+        }
+
+        // 3. Jika pengguna mengubah pilihan kamera di menu drop-down
+        seleksiKamera.onchange = () => {
+            mulaiScan(seleksiKamera.value);
+        };
     </script>
 </body>
 </html>
